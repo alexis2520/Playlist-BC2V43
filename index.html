@@ -167,7 +167,7 @@ const empty=t=>'<li class="empty">'+t+"</li>";
 function row(s,m){
 const v=s.voters||[],id=esc(s.id),n=v.length>1?'<span class="tag vote">×'+v.length+"</span>":"";
 const img='<img src="'+url(s.cover)+'" alt="" loading="lazy">';
-const ply=s.did?'<button class="play" data-act="play" data-d="'+esc(s.did)+'" aria-label="Écouter un extrait">▶</button>':"";
+const ply='<button class="play" data-act="play" data-d="'+esc(s.did||"")+'" data-s="'+esc(s.artist+" "+s.title)+'" aria-label="Écouter un extrait">▶</button>';
 const meta='<span class="meta"><b>'+esc(s.title)+"</b><span>"+esc(s.artist)+"</span>"+(m==="adm"?"<small>"+esc(v.join(", "))+"</small>":"")+"</span>";
 if(m==="pub")return'<li class="song">'+img+meta+(s.done?'<span class="tag ok">Dans la playlist</span>':"")+ply+"</li>";
 if(m==="vote")return'<li class="song">'+img+meta+ply+(v.includes(who())?'<button class="btn ghost" data-act="unvote" data-id="'+id+'">Retirer ma voix</button>':'<button class="btn ghost" data-act="vote" data-id="'+id+'">+1</button>')+"</li>";
@@ -198,15 +198,17 @@ const al=aid?await jsonp("https://api.deezer.com/album/"+aid+"?v=1"):{};
 await updateDoc(doc(db,"songs",s.id),{did:did||"",genre:((al.genres||{}).data||[]).map(x=>x.name)[0]||"Autre",year:(al.release_date||"").slice(0,4)})}catch{}
 await wait(300)}enriching=false}
 const enrichMissing=()=>{if(enriching)return;const l=songs.filter(s=>!s.genre&&!tried.has(s.id));if(l.length){l.forEach(s=>tried.add(s.id));enrich(l)}};
+const vts=s=>{const vo=s.voters||[],m=new Map();(s.log||[]).forEach(x=>{if(vo.includes(x.n))m.set(x.n,x)});vo.forEach(n=>{if(!m.has(n))m.set(n,{n,t:s.at||0})});return[...m.values()]};
 function mood(){
-const n=new Date(),m0=new Date(n.getFullYear(),n.getMonth(),1).getTime(),m1=new Date(n.getFullYear(),n.getMonth()-1,1).getTime(),at=s=>s.at||0;
-let L=songs;if(per==="m")L=L.filter(s=>at(s)>=m0);if(per==="p")L=L.filter(s=>at(s)>=m1&&at(s)<m0);
-const sc=f=>{const m=new Map();L.forEach(s=>{const k=f(s);if(k)m.set(k,(m.get(k)||0)+(s.voters||[]).length)});return[...m].sort((a,b)=>b[1]-a[1])};
-const pm=new Map();L.forEach(s=>(s.voters||[]).forEach(v=>pm.set(v,(pm.get(v)||0)+1)));
+const n=new Date(),m0=new Date(n.getFullYear(),n.getMonth(),1).getTime(),m1=new Date(n.getFullYear(),n.getMonth()-1,1).getTime();
+const inP=t=>per==="all"||(per==="m"?t>=m0:t>=m1&&t<m0);
+const V=songs.map(s=>({s,v:vts(s).filter(x=>inP(x.t))})).filter(x=>x.v.length);
+const sc=f=>{const m=new Map();V.forEach(x=>{const k=f(x.s);if(k)m.set(k,(m.get(k)||0)+x.v.length)});return[...m].sort((a,b)=>b[1]-a[1])};
+const pm=new Map();V.forEach(x=>x.v.forEach(y=>pm.set(y.n,(pm.get(y.n)||0)+1)));
 const g=sc(s=>s.genre),g5=g.slice(0,5),gl=g5.map(x=>x[0]),gc=g5.map(x=>x[1]),rest=g.slice(5).reduce((a,x)=>a+x[1],0);if(rest){gl.push("Autres");gc.push(rest)}
-const miss=L.filter(s=>!s.genre).length;
+const miss=V.filter(x=>!x.s.genre).length,tot=V.reduce((a,x)=>a+x.v.length,0);
 $("#admD").innerHTML='<div class="sub">'+[["all","Tout"],["m","Ce mois-ci"],["p","Mois dernier"]].map(x=>'<button class="btn'+(per===x[0]?"":" ghost")+'" data-act="per" data-v="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>"+
-'<p class="hint">'+L.length+" titres · "+L.filter(s=>s.valid).length+" validés · "+L.filter(s=>s.done).length+" ajoutés. Classement par nombre de voix."+(miss?" "+miss+" style(s) en cours de récupération…":"")+"</p>"+
+'<p class="hint">'+V.length+" titres · "+tot+" demandes · "+V.filter(x=>x.s.valid).length+" validés · "+V.filter(x=>x.s.done).length+" ajoutés. Classement par nombre de demandes."+(miss?" "+miss+" style(s) en cours de récupération…":"")+"</p>"+
 '<h2>Top 5 titres</h2><div class="card">'+bars(sc(s=>s.title+" — "+s.artist))+"</div>"+
 '<h2>Top 5 artistes</h2><div class="card">'+bars(sc(s=>s.artist))+"</div>"+
 '<h2>Styles favoris</h2><div class="card">'+bars(g)+pie(gc,gl.map(esc))+"</div>"+
@@ -225,23 +227,24 @@ $("#cN").textContent=pend.length;$("#cV").textContent=ok.length;stats();mood();e
 $("#ntfyHint").textContent="Notifications : installe l'appli gratuite « ntfy » et abonne-toi au sujet « "+C.ntfyTopic+" ».";}}
 
 const au=new Audio(),SIL="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";let pb=null;
-const stop=()=>{au.pause();if(pb)pb.textContent="▶";pb=null};au.onended=stop;
-async function play(b){if(pb===b)return stop();stop();au.src=SIL;au.play().catch(()=>{});b.textContent="⏳";pb=b;
+const stop=()=>{au.pause();if(pb)pb.textContent="▶";pb=null};
+async function play(b){if(pb===b)return stop();stop();au.onended=null;au.src=SIL;au.play().catch(()=>{});b.textContent="⏳";pb=b;
 try{let u=b.dataset.u;if(!u&&b.dataset.d)u=(await jsonp("https://api.deezer.com/track/"+b.dataset.d+"?v=1")).preview;
-if(!u)throw 0;if(pb!==b)return;au.src=u;await au.play();b.textContent="⏸"}catch{if(pb===b)stop();toast("Extrait indisponible")}}
+if(!u&&b.dataset.s){const r=(await jsonp("https://api.deezer.com/search?limit=1&q="+encodeURIComponent(b.dataset.s))).data||[];u=r[0]&&r[0].preview}
+if(!u)throw 0;if(pb!==b)return;au.src=u;au.onended=stop;await au.play();b.textContent="⏸"}catch{if(pb===b)stop();toast("Extrait indisponible")}}
 
 let tm;
 $("#q").oninput=e=>{clearTimeout(tm);const v=e.target.value.trim();if(v.length<2){res=[];$("#sug").innerHTML="";return}
 tm=setTimeout(async()=>{try{const d=await jsonp("https://api.deezer.com/search?limit=8&q="+encodeURIComponent(v));if(v!==$("#q").value.trim())return;res=d.data||[];
 $("#sug").innerHTML=res.map((t,i)=>{const ex=songs.find(x=>x.id===slug(t.artist.name,t.title));
-return'<li class="song"><button class="play" data-act="play" data-u="'+url(t.preview)+'" aria-label="Écouter un extrait">▶</button><button class="sugbtn" data-act="pick" data-i="'+i+'"><img src="'+url(t.album.cover_small)+'" alt=""><span class="meta"><b>'+esc(t.title)+"</b><span>"+esc(t.artist.name)+"</span></span>"+(ex&&ex.valid?'<span class="tag ok">Déjà dans la playlist</span>':"")+"</button></li>"}).join("")||empty("Aucun résultat. Essaie avec le nom de l'artiste.")}
+return'<li class="song"><button class="play" data-act="play" data-u="'+url(t.preview)+'" aria-label="Écouter un extrait">▶</button><button class="sugbtn" data-act="pick" data-i="'+i+'"><img src="'+url(t.album.cover_small)+'" alt=""><span class="meta"><b>'+esc(t.title)+"</b><span>"+esc(t.artist.name)+"</span></span>"+""+"</button></li>"}).join("")||empty("Aucun résultat. Essaie avec le nom de l'artiste.")}
 catch{$("#sug").innerHTML=empty("Recherche impossible. Vérifie ta connexion.")}},300)};
 
 async function pick(t){
 const id=slug(t.artist.name,t.title),ref=doc(db,"songs",id),snap=await getDoc(ref);
-if(snap.exists()){const d=snap.data();if(d.valid)return toast("Déjà dans la playlist 🎶");if((d.voters||[]).includes(who()))return toast("Tu as déjà proposé ce titre");await updateDoc(ref,{voters:arrayUnion(who())});toast("Ta musique est proposée ✓")}
+if(snap.exists()){const d=snap.data();if((d.voters||[]).includes(who()))return toast("Tu as déjà proposé ce titre");await updateDoc(ref,{voters:arrayUnion(who()),log:arrayUnion({n:who(),t:Date.now()})});toast("Ta musique est proposée ✓")}
 else{let g="Autre",y="";try{const al=await jsonp("https://api.deezer.com/album/"+t.album.id+"?v=1");g=((al.genres||{}).data||[]).map(x=>x.name)[0]||"Autre";y=(al.release_date||"").slice(0,4)}catch{}
-await setDoc(ref,{title:t.title,artist:t.artist.name,cover:t.album.cover_medium||"",link:t.link||"",did:String(t.id),genre:g,year:y,voters:[who()],valid:false,done:false,at:Date.now()});toast("Ta musique est proposée ✓");notify(t.title,t.artist.name)}
+await setDoc(ref,{title:t.title,artist:t.artist.name,cover:t.album.cover_medium||"",link:t.link||"",did:String(t.id),genre:g,year:y,voters:[who()],log:[{n:who(),t:Date.now()}],valid:false,done:false,at:Date.now()});toast("Ta musique est proposée ✓");notify(t.title,t.artist.name)}
 stop();$("#q").value="";$("#sug").innerHTML=""}
 
 document.addEventListener("click",async e=>{
@@ -254,7 +257,7 @@ if(a==="play")return play(b);
 if(a==="per"){per=b.dataset.v;return mood()}
 try{
 if(a==="pick")await pick(res[+b.dataset.i]);
-if(a==="vote")await updateDoc(ref,{voters:arrayUnion(who())});
+if(a==="vote")await updateDoc(ref,{voters:arrayUnion(who()),log:arrayUnion({n:who(),t:Date.now()})});
 if(a==="unvote"){if((s.voters||[]).length<=1)await deleteDoc(ref);else await updateDoc(ref,{voters:arrayRemove(who())});toast("Ta proposition est retirée ✓")}
 if(a==="valid")await updateDoc(ref,{valid:!s.valid});
 if(a==="done")await updateDoc(ref,{done:b.checked});
