@@ -9,85 +9,115 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--red:#d7191f;--ink:#16191d;--bg:#f2f3f5;--line:#e3e6ea;--mute:#69717c;--ok:#17924f}
+:root{--red:#d7191f;--ink:#16191d;--bg:#eef0f3;--line:#e3e6ea;--mute:#69717c;--ok:#17924f}
 *{box-sizing:border-box;margin:0}
-body{font:16px/1.4 Barlow,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
-h1,h2,.tab{font-family:'Barlow Condensed',Barlow,sans-serif}
+body{font:16px/1.4 Barlow,system-ui,sans-serif;background:radial-gradient(circle at 15% 0,#fff,var(--bg) 55%) fixed;color:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,.tab,th{font-family:'Barlow Condensed',Barlow,sans-serif}
 .wrap{max-width:720px;margin:0 auto;padding:0 14px}
-header{position:relative;background:var(--red);color:#fff;padding:calc(22px + env(safe-area-inset-top)) 0 22px}
+header{position:relative;color:#fff;padding:calc(22px + env(safe-area-inset-top)) 0 16px;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 14px,transparent 14px 28px),linear-gradient(135deg,#e5262c,#a50e16);box-shadow:0 8px 24px rgba(165,14,22,.35)}
 header::before{content:"";position:absolute;inset:10px;border:2px solid rgba(255,255,255,.28)}
 header::after{content:"";position:absolute;top:10px;bottom:10px;left:64%;width:2px;background:rgba(255,255,255,.28)}
 .hd{position:relative;z-index:1;display:flex;gap:16px;align-items:center}
-.logo{width:84px;height:84px;border-radius:50%;box-shadow:0 0 0 4px #fff;flex:none}
+.logo{width:84px;height:84px;border-radius:50%;box-shadow:0 0 0 4px #fff,0 6px 16px rgba(0,0,0,.35);flex:none}
 h1{font-size:clamp(30px,7.5vw,46px);line-height:.95;font-weight:700}
 header p{margin-top:6px;opacity:.92}
+.eq{position:relative;z-index:1;display:flex;gap:4px;align-items:flex-end;justify-content:flex-end;height:26px;margin-top:8px}
+.eq i{width:6px;height:6px;background:rgba(255,255,255,.85);border-radius:3px;animation:eq 1s ease-in-out infinite alternate}
+.eq i:nth-child(2n){animation-delay:-.35s}.eq i:nth-child(3n){animation-delay:-.7s}
+@keyframes eq{to{height:26px}}
 h2{font-size:26px;margin:22px 0 8px}.card h2{margin-top:0}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+h2::before{content:"";display:inline-block;width:6px;height:.8em;background:var(--red);margin-right:10px;border-radius:2px;vertical-align:-2px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;box-shadow:0 6px 18px rgba(22,25,29,.07)}
 .who{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;font-weight:600}
 .link{background:none;border:0;color:var(--red);font:inherit;text-decoration:underline;cursor:pointer}
-nav{position:sticky;top:0;z-index:5;display:flex;gap:6px;padding:8px 0;background:var(--bg)}
-.tab{flex:1;border:0;padding:10px 6px;border-radius:10px;background:#e4e6ea;font-size:20px;font-weight:600;color:var(--ink);cursor:pointer}
-.tab[aria-selected=true]{background:var(--ink);color:#fff}
+nav{position:sticky;top:0;z-index:5;display:flex;gap:6px;padding:8px 0;background:rgba(238,240,243,.92);backdrop-filter:blur(6px)}
+.tab{flex:1;border:0;padding:10px 6px;border-radius:12px;background:#e1e4e9;font-size:20px;font-weight:600;color:var(--ink);cursor:pointer}
+.tab[aria-selected=true]{background:linear-gradient(135deg,#e5262c,#b3121a);color:#fff;box-shadow:0 4px 12px rgba(215,25,31,.4)}
 .in{display:block;width:100%;font:inherit;padding:14px;margin:0 0 10px;border:2px solid var(--line);border-radius:12px;background:#fff}
 .in:focus{outline:none;border-color:var(--red)}
+.q{font-weight:600;margin-top:6px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font:600 15px Barlow,sans-serif;color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
 ul{padding:0;list-style:none}
 .song{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
 li:last-child>.song,li.song:last-child{border-bottom:0}
-.song img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#d9dce1;flex:none}
+.song img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#d9dce1;flex:none;box-shadow:0 3px 8px rgba(0,0,0,.18)}
 .meta{flex:1;min-width:0}.meta>*{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta b{font-weight:600}.meta span{color:var(--mute);font-size:14px}.meta small{color:var(--mute);font-size:12.5px;white-space:normal}
-.sugbtn{width:100%;background:none;border:0;font:inherit;text-align:left;color:inherit;cursor:pointer;padding:8px 4px;border-radius:10px}
+.sugbtn{flex:1;min-width:0;display:flex;gap:12px;align-items:center;background:none;border:0;font:inherit;text-align:left;color:inherit;cursor:pointer;padding:6px;border-radius:10px}
 .sugbtn:hover{background:var(--bg)}
+.play{width:40px;height:40px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:15px;cursor:pointer;flex:none}
+.play:hover{background:var(--red)}
 .btn{border:0;border-radius:10px;padding:9px 14px;font:600 15px Barlow,sans-serif;background:var(--ink);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
 .btn.red{background:var(--red)}.btn.ghost{background:#e4e6ea;color:var(--ink)}
 .tag{font-size:13px;font-weight:600;padding:3px 9px;border-radius:99px;background:#e4e6ea;white-space:nowrap}
 .tag.ok{background:#d9f2e4;color:#0d6b38}.tag.vote{background:#fde3e4;color:#a5121a}
-.act{display:flex;gap:8px;flex-wrap:wrap;width:100%;padding-left:44px}
+.act{display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%;padding-left:44px}
 .chk{position:relative;width:32px;height:32px;flex:none}
 .chk input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .chk span{position:absolute;inset:0;border:3px solid var(--ink);border-radius:6px;background:#fff}
 .chk input:checked+span{background:var(--ok);border-color:var(--ok)}
 .chk input:checked+span::after{content:"";position:absolute;left:8px;top:1px;width:8px;height:16px;border:solid #fff;border-width:0 4px 4px 0;transform:rotate(45deg)}
-.chk input:focus-visible+span,.btn:focus-visible,.tab:focus-visible,.sugbtn:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.chk input:focus-visible+span,.btn:focus-visible,.tab:focus-visible,.chip:focus-visible,.play:focus-visible,.sugbtn:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .done .meta b{opacity:.5}.done img{filter:grayscale(.7)}
 .empty{color:var(--mute);padding:12px 2px}.hint{color:var(--mute);font-size:14px;margin-top:10px}
+.sub{display:flex;gap:8px;margin-top:12px}
+.pie{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.disc{width:140px;height:140px;border-radius:50%;flex:none;position:relative}
+.disc::after{content:"";position:absolute;inset:34px;background:#fff;border-radius:50%}
+.leg{flex:1;min-width:170px}.leg li{display:flex;align-items:center;gap:8px;padding:2px 0}.leg i{width:12px;height:12px;border-radius:3px;flex:none}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:17px}
+.foot{text-align:center;margin-top:30px}.foot .link{font-size:12px;color:#aab0b8;text-decoration:none}
 .warn{background:#fff3cd;padding:12px;text-align:center}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
-main{padding-bottom:60px}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+main{padding-bottom:50px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
-<header><div class="wrap hd"><img class="logo" src="logo.png" alt="Logo BCV 43"><div><h1>Playlist des entraînements</h1><p>Propose les musiques que tu veux entendre au BCV 43.</p></div></div></header>
+<header><div class="wrap"><div class="hd"><img class="logo" src="logo.png" alt="Logo BCV 43"><div><h1>Playlist des entraînements</h1><p>Propose les musiques que tu veux entendre au BCV 43.</p></div></div><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></header>
 <main class="wrap">
 <section id="gate" class="card" hidden>
 <h2>Qui es-tu ?</h2>
 <input id="fn" class="in" placeholder="Prénom" autocomplete="given-name">
 <input id="ln" class="in" placeholder="Nom" autocomplete="family-name">
+<p class="q">À quel entraînement viens-tu ?</p><div class="chips" id="gTr"></div>
+<p class="q">Quand voudrais-tu de la musique au club ?</p><div class="chips" id="gMu"></div>
+<p class="hint" style="margin:0 0 12px">Plusieurs réponses possibles. Tu pourras les modifier dans l'onglet Mood.</p>
 <button id="go" class="btn red">Entrer</button>
 </section>
 <div id="app" hidden>
 <div class="who"><span id="whoTxt"></span><button id="chg" class="link">Changer de nom</button></div>
-<nav><button class="tab" id="t-add">Proposer</button><button class="tab" id="t-list">Playlist</button><button class="tab" id="t-admin">Admin</button></nav>
+<nav><button class="tab" id="t-add">Proposer</button><button class="tab" id="t-list">Playlist</button><button class="tab" id="t-mood">Mood</button></nav>
 <section id="v-add">
 <div class="card"><input id="q" class="in" type="search" placeholder="Titre ou artiste…" autocomplete="off"><ul id="sug"></ul></div>
 <h2>Propositions en attente</h2>
 <div class="card"><ul id="pend"></ul></div>
 </section>
 <section id="v-list" hidden><h2>Musiques validées</h2><div class="card"><ul id="pub"></ul></div></section>
+<section id="v-mood" hidden><h2>Mon mood</h2><div class="card">
+<p class="q">À quel entraînement viens-tu ?</p><div class="chips" id="mTr"></div>
+<p class="q">Quand voudrais-tu de la musique au club ?</p><div class="chips" id="mMu"></div>
+<p class="q">Que voudrais-tu améliorer au club concernant la musique ?</p>
+<textarea id="idea" class="in" rows="4" placeholder="Ton idée, en quelques mots…"></textarea>
+<button id="mSave" class="btn red">Enregistrer</button></div></section>
 <section id="v-admin" hidden>
-<div id="pin" class="card"><h2>Accès admin</h2><input id="pinIn" class="in" type="password" inputmode="numeric" placeholder="Code admin"><button id="pinGo" class="btn red">Ouvrir</button></div>
+<div id="pin" class="card"><h2>Accès admin</h2><input id="pinIn" class="in" type="password" placeholder="Code admin"><button id="pinGo" class="btn red">Ouvrir</button></div>
 <div id="adm" hidden>
-<p class="hint" id="ntfyHint"></p>
+<div class="sub"><button class="btn" id="sM">Musiques</button><button class="btn ghost" id="sS">Statistiques</button></div>
+<div id="admM"><p class="hint" id="ntfyHint"></p>
 <h2>À traiter <span class="tag" id="cN"></span></h2><div class="card"><ul id="admNew"></ul></div>
-<h2>Validées <span class="tag" id="cV"></span></h2><div class="card"><ul id="admOk"></ul></div>
+<h2>Validées <span class="tag" id="cV"></span></h2><div class="card"><ul id="admOk"></ul></div></div>
+<div id="admS" hidden><div id="stats"></div></div>
 </div></section>
+<p class="foot"><button id="adminLink" class="link">Espace organisateur</button></p>
 </div>
 </main>
 <div id="toast" role="status"></div>
 <script src="config.js"></script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,arrayUnion}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,arrayUnion,arrayRemove}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const C=window.CONFIG,$=s=>document.querySelector(s);
 if(C.firebase.projectId.startsWith("COLLE")){document.body.insertAdjacentHTML("afterbegin",'<p class="warn">Configuration manquante : remplis le fichier config.js (voir LISEZ-MOI.md).</p>');throw new Error("config")}
 const db=getFirestore(initializeApp(C.firebase));
@@ -100,59 +130,96 @@ let tt;const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("on")
 const jsonp=u=>new Promise((ok,ko)=>{const n="cb"+Date.now()+Math.floor(Math.random()*999),s=document.createElement("script"),end=()=>{delete window[n];s.remove()};window[n]=d=>{end();ok(d)};s.onerror=()=>{end();ko()};s.src=u+"&output=jsonp&callback="+n;document.body.append(s)});
 const notify=(t,a)=>fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:C.ntfyTopic,title:"🎵 Nouvelle musique",message:t+" — "+a+"\nProposée par "+who(),tags:["musical_note"]})}).catch(()=>{});
 
-let me=JSON.parse(localStorage.getItem("me")||"null"),songs=[],res=[],adm=sessionStorage.getItem("adm")==="1";
-const who=()=>me.first+" "+me.last;
+const TR=["Lundi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"],MU=TR.slice(1),COL=["#d7191f","#16191d","#f2a900","#16a39b","#6c4ad6","#7cb518"];
+let me=JSON.parse(localStorage.getItem("me")||"null"),songs=[],plr=[],res=[],unsub,adm=sessionStorage.getItem("adm")==="1";
+const who=()=>me.first+" "+me.last,pid=()=>norm(who());
+const chip=(o,on)=>'<button type="button" class="chip" aria-pressed="'+on+'">'+o+"</button>";
+const mk=(el,opts,s=[],all)=>{el.innerHTML=opts.map(o=>chip(o,s.includes(o))).join("")+(all?chip("Tous",opts.every(o=>s.includes(o))):"")};
+const sel=el=>[...el.querySelectorAll(".chip[aria-pressed=true]")].map(c=>c.textContent).filter(x=>x!=="Tous");
+const saveProfile=d=>setDoc(doc(db,"players",pid()),{first:me.first,last:me.last,...d,at:Date.now()},{merge:true});
+mk($("#gTr"),TR);mk($("#gMu"),MU,[],true);
+
 function showApp(){$("#gate").hidden=!!me;$("#app").hidden=!me;if(me)$("#whoTxt").textContent="Salut "+me.first+" !"}
-$("#go").onclick=()=>{const f=cap($("#fn").value),l=cap($("#ln").value);if(!f||!l)return toast("Écris ton prénom et ton nom");me={first:f,last:l};localStorage.setItem("me",JSON.stringify(me));showApp();render()};
+$("#go").onclick=async()=>{const f=cap($("#fn").value),l=cap($("#ln").value),tr=sel($("#gTr")),mu=sel($("#gMu"));
+if(!f||!l)return toast("Écris ton prénom et ton nom");if(!tr.length||!mu.length)return toast("Réponds aux deux questions");
+me={first:f,last:l};try{await saveProfile({tr,mu})}catch{me=null;return toast("Erreur, réessaie")}
+localStorage.setItem("me",JSON.stringify(me));showApp();render()};
 $("#chg").onclick=()=>{localStorage.removeItem("me");me=null;showApp()};
-const tabs=["add","list","admin"];
-const tab=n=>tabs.forEach(t=>{$("#v-"+t).hidden=t!==n;$("#t-"+t).setAttribute("aria-selected",t===n)});
-tabs.forEach(t=>$("#t-"+t).onclick=()=>tab(t));
+async function loadMood(){try{const s=await getDoc(doc(db,"players",pid())),d=s.exists()?s.data():{};mk($("#mTr"),TR,d.tr||[]);mk($("#mMu"),MU,d.mu||[],true);$("#idea").value=d.idea||""}catch{toast("Chargement impossible")}}
+$("#mSave").onclick=async()=>{try{await saveProfile({tr:sel($("#mTr")),mu:sel($("#mMu")),idea:$("#idea").value.trim()});toast("Enregistré ✓")}catch{toast("Erreur, réessaie")}};
+const tabs=["add","list","mood","admin"];
+const tab=n=>{tabs.forEach(t=>{$("#v-"+t).hidden=t!==n;const b=$("#t-"+t);if(b)b.setAttribute("aria-selected",t===n)});if(n==="mood")loadMood();window.scrollTo(0,0)};
+tabs.slice(0,3).forEach(t=>$("#t-"+t).onclick=()=>tab(t));
+$("#adminLink").onclick=()=>me&&tab("admin");
+let lt=0,lto;$(".logo").onclick=()=>{lt++;clearTimeout(lto);lto=setTimeout(()=>lt=0,1500);if(lt>=5){lt=0;if(me)tab("admin")}};
 $("#pinGo").onclick=()=>{if($("#pinIn").value===String(C.adminPin)){adm=true;sessionStorage.setItem("adm","1");render()}else toast("Code incorrect")};
+const sub=m=>{$("#admM").hidden=!!m;$("#admS").hidden=!m;$("#sM").className="btn"+(m?" ghost":"");$("#sS").className="btn"+(m?"":" ghost")};
+$("#sM").onclick=()=>sub(0);$("#sS").onclick=()=>sub(1);
 
 const empty=t=>'<li class="empty">'+t+"</li>";
 function row(s,m){
 const v=s.voters||[],id=esc(s.id),n=v.length>1?'<span class="tag vote">×'+v.length+"</span>":"";
 const img='<img src="'+url(s.cover)+'" alt="" loading="lazy">';
+const ply=s.did?'<button class="play" data-act="play" data-d="'+esc(s.did)+'" aria-label="Écouter un extrait">▶</button>':"";
 const meta='<span class="meta"><b>'+esc(s.title)+"</b><span>"+esc(s.artist)+"</span><small>"+esc(v.join(", "))+"</small></span>";
-if(m==="pub")return'<li class="song">'+img+meta+(s.done?'<span class="tag ok">Dans la playlist</span>':"")+"</li>";
-if(m==="vote")return'<li class="song">'+img+meta+n+(v.includes(who())?'<span class="tag">Ton vote ✓</span>':'<button class="btn ghost" data-act="vote" data-id="'+id+'">+1</button>')+"</li>";
+if(m==="pub")return'<li class="song">'+img+meta+(s.done?'<span class="tag ok">Dans la playlist</span>':"")+ply+"</li>";
+if(m==="vote")return'<li class="song">'+img+meta+n+ply+(v.includes(who())?'<button class="btn ghost" data-act="unvote" data-id="'+id+'">Retirer ma voix</button>':'<button class="btn ghost" data-act="vote" data-id="'+id+'">+1</button>')+"</li>";
 const dz=url(s.link);
 return'<li class="song '+(s.done?"done":"")+'"><label class="chk" title="Ajoutée à la playlist"><input type="checkbox" data-act="done" data-id="'+id+'" '+(s.done?"checked":"")+"><span></span></label>"+img+meta+n+
-'<div class="act"><button class="btn '+(s.valid?"ghost":"red")+'" data-act="valid" data-id="'+id+'">'+(s.valid?"Retirer de la liste":"Valider")+"</button>"+
+'<div class="act">'+ply+'<button class="btn '+(s.valid?"ghost":"red")+'" data-act="valid" data-id="'+id+'">'+(s.valid?"Retirer de la liste":"Valider")+"</button>"+
 '<a class="btn ghost" target="_blank" rel="noopener" href="https://open.spotify.com/search/'+encodeURIComponent(s.artist+" "+s.title)+'">Spotify</a>'+
 (dz?'<a class="btn ghost" target="_blank" rel="noopener" href="'+dz+'">Deezer</a>':"")+
 '<button class="btn ghost" data-act="del" data-id="'+id+'" aria-label="Supprimer">🗑</button></div></li>'}
+const cnt=(k,o)=>o.map(x=>plr.filter(p=>(p[k]||[]).includes(x)).length);
+function pie(c,l){const t=c.reduce((a,b)=>a+b,0);if(!t)return'<p class="empty">Pas encore de réponses.</p>';let a=0;
+const g=c.map((x,i)=>{const s=a/t*100;a+=x;return COL[i]+" "+s+"% "+a/t*100+"%"}).join(",");
+return'<div class="pie"><div class="disc" style="background:conic-gradient('+g+')"></div><ul class="leg">'+l.map((x,i)=>c[i]?'<li><i style="background:'+COL[i]+'"></i>'+x+" · "+c[i]+" ("+Math.round(c[i]/t*100)+"%)</li>":"").join("")+"</ul></div>"}
+function stats(){const ct=cnt("tr",TR),cm=cnt("mu",TR),r=[...plr].sort((a,b)=>(a.last||"").localeCompare(b.last||""));
+$("#stats").innerHTML='<div class="card"><b>'+plr.length+" joueur(s) inscrit(s)</b></div>"+
+"<h2>Entraînements</h2><div class=\"card\">"+pie(ct,TR)+"</div><h2>Jours de musique souhaités</h2><div class=\"card\">"+pie(cm,TR)+"</div>"+
+'<h2>Tableau</h2><div class="card tw"><table><tr><th>Jour</th><th>Viennent</th><th>Veulent de la musique</th></tr>'+TR.map((d,i)=>"<tr><td>"+d+"</td><td>"+ct[i]+"</td><td>"+(i?cm[i]:"–")+"</td></tr>").join("")+"</table></div>"+
+'<h2>Joueurs</h2><div class="card tw"><table><tr><th>Nom</th><th>Entraînements</th><th>Musique</th><th>Idée</th></tr>'+r.map(p=>"<tr><td>"+esc(p.first+" "+p.last)+"</td><td>"+esc((p.tr||[]).join(", "))+"</td><td>"+esc((p.mu||[]).join(", "))+"</td><td>"+esc(p.idea||"")+"</td></tr>").join("")+"</table></div>"}
 function render(){
 if(!me)return;
 const all=[...songs].sort((a,b)=>(b.at||0)-(a.at||0)),pend=all.filter(s=>!s.valid),ok=all.filter(s=>s.valid);
 $("#pend").innerHTML=pend.map(s=>row(s,"vote")).join("")||empty("Rien en attente. Tape un titre ci-dessus pour proposer le premier !");
 $("#pub").innerHTML=ok.map(s=>row(s,"pub")).join("")||empty("Aucune musique validée pour l'instant.");
 $("#pin").hidden=adm;$("#adm").hidden=!adm;
-if(adm){$("#admNew").innerHTML=pend.map(s=>row(s,"adm")).join("")||empty("Rien à traiter.");$("#admOk").innerHTML=ok.map(s=>row(s,"adm")).join("")||empty("Aucune musique validée.");
-$("#cN").textContent=pend.length;$("#cV").textContent=ok.length;
+if(adm){if(!unsub)unsub=onSnapshot(collection(db,"players"),q=>{plr=q.docs.map(d=>d.data());stats()});
+$("#admNew").innerHTML=pend.map(s=>row(s,"adm")).join("")||empty("Rien à traiter.");$("#admOk").innerHTML=ok.map(s=>row(s,"adm")).join("")||empty("Aucune musique validée.");
+$("#cN").textContent=pend.length;$("#cV").textContent=ok.length;stats();
 $("#ntfyHint").textContent="Notifications : installe l'appli gratuite « ntfy » et abonne-toi au sujet « "+C.ntfyTopic+" ».";}}
+
+const au=new Audio(),SIL="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";let pb=null;
+const stop=()=>{au.pause();if(pb)pb.textContent="▶";pb=null};au.onended=stop;
+async function play(b){if(pb===b)return stop();stop();au.src=SIL;au.play().catch(()=>{});b.textContent="⏳";pb=b;
+try{let u=b.dataset.u;if(!u&&b.dataset.d)u=(await jsonp("https://api.deezer.com/track/"+b.dataset.d+"?v=1")).preview;
+if(!u)throw 0;if(pb!==b)return;au.src=u;await au.play();b.textContent="⏸"}catch{if(pb===b)stop();toast("Extrait indisponible")}}
 
 let tm;
 $("#q").oninput=e=>{clearTimeout(tm);const v=e.target.value.trim();if(v.length<2){res=[];$("#sug").innerHTML="";return}
 tm=setTimeout(async()=>{try{const d=await jsonp("https://api.deezer.com/search?limit=8&q="+encodeURIComponent(v));if(v!==$("#q").value.trim())return;res=d.data||[];
 $("#sug").innerHTML=res.map((t,i)=>{const ex=songs.find(x=>x.id===slug(t.artist.name,t.title));
-return'<li><button class="song sugbtn" data-act="pick" data-i="'+i+'"><img src="'+url(t.album.cover_small)+'" alt=""><span class="meta"><b>'+esc(t.title)+"</b><span>"+esc(t.artist.name)+"</span></span>"+(ex?'<span class="tag vote">Déjà proposée ×'+(ex.voters||[]).length+"</span>":"")+"</button></li>"}).join("")||empty("Aucun résultat. Essaie avec le nom de l'artiste.")}
+return'<li class="song"><button class="play" data-act="play" data-u="'+url(t.preview)+'" aria-label="Écouter un extrait">▶</button><button class="sugbtn" data-act="pick" data-i="'+i+'"><img src="'+url(t.album.cover_small)+'" alt=""><span class="meta"><b>'+esc(t.title)+"</b><span>"+esc(t.artist.name)+"</span></span>"+(ex?'<span class="tag vote">Déjà proposée ×'+(ex.voters||[]).length+"</span>":"")+"</button></li>"}).join("")||empty("Aucun résultat. Essaie avec le nom de l'artiste.")}
 catch{$("#sug").innerHTML=empty("Recherche impossible. Vérifie ta connexion.")}},300)};
 
 async function pick(t){
-const id=slug(t.artist.name,t.title),ref=doc(db,"songs",id);
-const snap=await getDoc(ref);
+const id=slug(t.artist.name,t.title),ref=doc(db,"songs",id),snap=await getDoc(ref);
 if(snap.exists()){if((snap.data().voters||[]).includes(who()))return toast("Tu as déjà proposé ce titre");await updateDoc(ref,{voters:arrayUnion(who())});toast("Déjà proposé : ton vote est ajouté ✓")}
-else{await setDoc(ref,{title:t.title,artist:t.artist.name,cover:t.album.cover_medium||"",link:t.link||"",voters:[who()],valid:false,done:false,at:Date.now()});toast("Merci, ta musique est proposée ✓");notify(t.title,t.artist.name)}
-$("#q").value="";$("#sug").innerHTML=""}
+else{await setDoc(ref,{title:t.title,artist:t.artist.name,cover:t.album.cover_medium||"",link:t.link||"",did:String(t.id),voters:[who()],valid:false,done:false,at:Date.now()});toast("Merci, ta musique est proposée ✓");notify(t.title,t.artist.name)}
+stop();$("#q").value="";$("#sug").innerHTML=""}
 
 document.addEventListener("click",async e=>{
+const c=e.target.closest(".chip");
+if(c){const p=c.parentElement,all=[...p.querySelectorAll(".chip")],t=all.find(x=>x.textContent==="Tous"),on=c.getAttribute("aria-pressed")!=="true";
+if(c===t)all.forEach(x=>x.setAttribute("aria-pressed",on));else{c.setAttribute("aria-pressed",on);if(t)t.setAttribute("aria-pressed",all.filter(x=>x!==t).every(x=>x.getAttribute("aria-pressed")==="true"))}return}
 const b=e.target.closest("[data-act]");if(!b)return;
 const a=b.dataset.act,id=b.dataset.id,ref=id&&doc(db,"songs",id),s=songs.find(x=>x.id===id);
+if(a==="play")return play(b);
 try{
 if(a==="pick")await pick(res[+b.dataset.i]);
 if(a==="vote")await updateDoc(ref,{voters:arrayUnion(who())});
+if(a==="unvote"){if((s.voters||[]).length<=1)await deleteDoc(ref);else await updateDoc(ref,{voters:arrayRemove(who())});toast("Ta proposition est retirée ✓")}
 if(a==="valid")await updateDoc(ref,{valid:!s.valid});
 if(a==="done")await updateDoc(ref,{done:b.checked});
 if(a==="del"&&confirm("Supprimer ce titre ?"))await deleteDoc(ref);
