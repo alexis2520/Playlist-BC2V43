@@ -110,12 +110,13 @@ main{padding-bottom:50px}
 <section id="v-admin" hidden>
 <div id="pin" class="card"><h2>Accès admin</h2><input id="pinIn" class="in" type="password" placeholder="Code admin"><button id="pinGo" class="btn red">Ouvrir</button></div>
 <div id="adm" hidden>
-<div class="sub"><button class="btn" id="sM">Musiques</button><button class="btn ghost" id="sS">Statistiques</button><button class="btn ghost" id="sD">Mood joueurs</button></div>
+<div class="sub"><button class="btn" id="sM">Musiques</button><button class="btn ghost" id="sS">Statistiques</button><button class="btn ghost" id="sD">Mood joueurs</button><button class="btn ghost" id="sJ">Musique par jour</button></div>
 <div id="admM"><p class="hint" id="ntfyHint"></p>
 <h2>À traiter <span class="tag" id="cN"></span></h2><div class="card"><ul id="admNew"></ul></div>
 <h2>Validées <span class="tag" id="cV"></span></h2><div class="card"><ul id="admOk"></ul></div></div>
 <div id="admS" hidden><div id="stats"></div></div>
 <div id="admD" hidden></div>
+<div id="admJ" hidden></div>
 </div></section>
 <p class="foot"><button id="adminLink" class="link">Espace organisateur</button></p>
 </div>
@@ -144,7 +145,7 @@ const chip=(o,on)=>'<button type="button" class="chip" aria-pressed="'+on+'">'+o
 const mk=(el,opts,s=[],all)=>{el.innerHTML=opts.map(o=>chip(o,s.includes(o))).join("")+(all?chip("Tous",opts.every(o=>s.includes(o))):"")};
 const sel=el=>[...el.querySelectorAll(".chip[aria-pressed=true]")].map(c=>c.textContent).filter(x=>x!=="Tous");
 const saveProfile=d=>setDoc(doc(db,"players",pid()),{first:me.first,last:me.last,...d,at:Date.now()},{merge:true});
-mk($("#gTr"),TR);mk($("#gMu"),MU,[],true);
+mk($("#gTr"),TR);mk($("#gMu"),MU);
 
 function showApp(){$("#gate").hidden=!!me;$("#app").hidden=!me;if(me)$("#whoTxt").textContent="Salut "+me.first+" !"}
 $("#go").onclick=async()=>{const f=cap($("#fn").value),l=cap($("#ln").value),tr=sel($("#gTr")),mu=sel($("#gMu"));
@@ -152,7 +153,7 @@ if(!f||!l)return toast("Écris ton prénom et ton nom");if(!tr.length||!mu.lengt
 me={first:f,last:l};try{await saveProfile({tr,mu})}catch{me=null;return toast("Erreur, réessaie")}
 localStorage.setItem("me",JSON.stringify(me));showApp();render()};
 $("#chg").onclick=()=>{localStorage.removeItem("me");me=null;showApp()};
-async function loadMood(){try{const s=await getDoc(doc(db,"players",pid())),d=s.exists()?s.data():{};mk($("#mTr"),TR,d.tr||[]);mk($("#mMu"),MU,d.mu||[],true);$("#idea").value=d.idea||""}catch{toast("Chargement impossible")}}
+async function loadMood(){try{const s=await getDoc(doc(db,"players",pid())),d=s.exists()?s.data():{};mk($("#mTr"),TR,d.tr||[]);mk($("#mMu"),MU,d.mu||[]);$("#idea").value=d.idea||""}catch{toast("Chargement impossible")}}
 $("#mSave").onclick=async()=>{try{await saveProfile({tr:sel($("#mTr")),mu:sel($("#mMu")),idea:$("#idea").value.trim()});toast("Enregistré ✓")}catch{toast("Erreur, réessaie")}};
 const tabs=["add","list","mood","admin"];
 const tab=n=>{tabs.forEach(t=>{$("#v-"+t).hidden=t!==n;const b=$("#t-"+t);if(b)b.setAttribute("aria-selected",t===n)});if(n==="mood")loadMood();window.scrollTo(0,0)};
@@ -160,17 +161,18 @@ tabs.slice(0,3).forEach(t=>$("#t-"+t).onclick=()=>tab(t));
 $("#adminLink").onclick=()=>me&&tab("admin");
 let lt=0,lto;$(".logo").onclick=()=>{lt++;clearTimeout(lto);lto=setTimeout(()=>lt=0,1500);if(lt>=5){lt=0;if(me)tab("admin")}};
 $("#pinGo").onclick=()=>{if($("#pinIn").value===String(C.adminPin)){adm=true;sessionStorage.setItem("adm","1");render()}else toast("Code incorrect")};
-const sub=m=>{["admM","admS","admD"].forEach((x,i)=>$("#"+x).hidden=i!==m);["sM","sS","sD"].forEach((x,i)=>$("#"+x).className="btn"+(i===m?"":" ghost"))};
-$("#sM").onclick=()=>sub(0);$("#sS").onclick=()=>sub(1);$("#sD").onclick=()=>sub(2);
+const sub=m=>{["admM","admS","admD","admJ"].forEach((x,i)=>$("#"+x).hidden=i!==m);["sM","sS","sD","sJ"].forEach((x,i)=>$("#"+x).className="btn"+(i===m?"":" ghost"))};
+$("#sM").onclick=()=>sub(0);$("#sS").onclick=()=>sub(1);$("#sD").onclick=()=>sub(2);$("#sJ").onclick=()=>sub(3);
 
 const empty=t=>'<li class="empty">'+t+"</li>";
-function row(s,m){
-const v=s.voters||[],id=esc(s.id),n=v.length>1?'<span class="tag vote">×'+v.length+"</span>":"";
+function row(s,m,vl){
+const v=vl||s.voters||[],id=esc(s.id),n=v.length>1?'<span class="tag vote">×'+v.length+"</span>":"";
 const img='<img src="'+url(s.cover)+'" alt="" loading="lazy">';
 const ply='<button class="play" data-act="play" data-d="'+esc(s.did||"")+'" data-s="'+esc(s.artist+" "+s.title)+'" aria-label="Écouter un extrait">▶</button>';
-const meta='<span class="meta"><b>'+esc(s.title)+"</b><span>"+esc(s.artist)+"</span>"+(m==="adm"?"<small>"+esc(v.join(", "))+"</small>":"")+"</span>";
+const meta='<span class="meta"><b>'+esc(s.title)+"</b><span>"+esc(s.artist)+"</span>"+(m==="adm"||m==="day"?"<small>"+esc(v.join(", "))+"</small>":"")+"</span>";
 if(m==="pub")return'<li class="song">'+img+meta+(s.done?'<span class="tag ok">Dans la playlist</span>':"")+ply+"</li>";
 if(m==="vote")return'<li class="song">'+img+meta+ply+(v.includes(who())?'<button class="btn ghost" data-act="unvote" data-id="'+id+'">Retirer ma voix</button>':'<button class="btn ghost" data-act="vote" data-id="'+id+'">+1</button>')+"</li>";
+if(m==="day")return'<li class="song">'+img+meta+n+(s.done?'<span class="tag ok">Ajoutée</span>':s.valid?'<span class="tag">Validée</span>':'<span class="tag">En attente</span>')+ply+"</li>";
 const dz=url(s.link);
 return'<li class="song '+(s.done?"done":"")+'"><label class="chk" title="Ajoutée à la playlist"><input type="checkbox" data-act="done" data-id="'+id+'" '+(s.done?"checked":"")+"><span></span></label>"+img+meta+n+
 '<div class="act">'+ply+'<button class="btn '+(s.valid?"ghost":"red")+'" data-act="valid" data-id="'+id+'">'+(s.valid?"Retirer de la liste":"Valider")+"</button>"+
@@ -215,15 +217,24 @@ $("#admD").innerHTML='<div class="sub">'+[["all","Tout"],["m","Ce mois-ci"],["p"
 '<h2>Décennies</h2><div class="card">'+bars(sc(s=>+s.year>1900?Math.floor(s.year/10)*10+"s":""))+"</div>"+
 '<h2>Les plus actifs</h2><div class="card">'+bars([...pm].sort((a,b)=>b[1]-a[1]))+"</div>"}
 
+let dday="Lundi",dmode="tr";
+function dayview(){
+const pl=new Map(plr.map(p=>[(p.first||"")+" "+(p.last||""),p])),grp=n=>{const p=pl.get(n);return!!p&&(p[dmode]||[]).includes(dday)};
+const rows=songs.map(s=>({s,v:(s.voters||[]).filter(grp)})).filter(x=>x.v.length).sort((a,b)=>b.v.length-a.v.length||(b.s.at||0)-(a.s.at||0));
+const nb=plr.filter(p=>(p[dmode]||[]).includes(dday)).length,none=songs.filter(s=>!(s.voters||[]).some(v=>pl.has(v))).length;
+$("#admJ").innerHTML='<div class="sub">'+TR.map(d=>'<button class="btn'+(d===dday?"":" ghost")+'" data-act="dday" data-v="'+d+'">'+d+"</button>").join("")+"</div>"+
+'<div class="sub">'+[["tr","Viennent ce jour"],["mu","Veulent de la musique ce jour"]].map(x=>'<button class="btn'+(dmode===x[0]?"":" ghost")+'" data-act="dmode" data-v="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>"+
+'<p class="hint">'+nb+" joueur(s) · "+rows.length+" titre(s)"+(none?" · "+none+" titre(s) de joueurs sans réponse au questionnaire, non classés":"")+"</p>"+
+'<div class="card"><ul>'+(rows.map(x=>row(x.s,"day",x.v)).join("")||empty("Aucune musique pour ce jour."))+"</ul></div>"}
 function render(){
 if(!me)return;
 const all=[...songs].sort((a,b)=>(b.at||0)-(a.at||0)),pend=all.filter(s=>!s.valid),ok=all.filter(s=>s.valid);
 $("#pend").innerHTML=pend.filter(s=>(s.voters||[]).includes(who())).map(s=>row(s,"vote")).join("")||empty("Tu n'as aucune proposition en attente. Tape un titre ci-dessus pour en proposer une !");
 $("#pub").innerHTML=ok.map(s=>row(s,"pub")).join("")||empty("Aucune musique validée pour l'instant.");
 $("#pin").hidden=adm;$("#adm").hidden=!adm;
-if(adm){if(!unsub)unsub=onSnapshot(collection(db,"players"),q=>{plr=q.docs.map(d=>d.data());stats()});
+if(adm){if(!unsub)unsub=onSnapshot(collection(db,"players"),q=>{plr=q.docs.map(d=>d.data());stats();dayview()});
 $("#admNew").innerHTML=pend.map(s=>row(s,"adm")).join("")||empty("Rien à traiter.");$("#admOk").innerHTML=ok.map(s=>row(s,"adm")).join("")||empty("Aucune musique validée.");
-$("#cN").textContent=pend.length;$("#cV").textContent=ok.length;stats();mood();enrichMissing();
+$("#cN").textContent=pend.length;$("#cV").textContent=ok.length;stats();mood();dayview();enrichMissing();
 $("#ntfyHint").textContent="Notifications : installe l'appli gratuite « ntfy » et abonne-toi au sujet « "+C.ntfyTopic+" ».";}}
 
 const au=new Audio(),SIL="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";let pb=null;
@@ -255,6 +266,8 @@ const b=e.target.closest("[data-act]");if(!b)return;
 const a=b.dataset.act,id=b.dataset.id,ref=id&&doc(db,"songs",id),s=songs.find(x=>x.id===id);
 if(a==="play")return play(b);
 if(a==="per"){per=b.dataset.v;return mood()}
+if(a==="dday"){dday=b.dataset.v;return dayview()}
+if(a==="dmode"){dmode=b.dataset.v;return dayview()}
 try{
 if(a==="pick")await pick(res[+b.dataset.i]);
 if(a==="vote")await updateDoc(ref,{voters:arrayUnion(who()),log:arrayUnion({n:who(),t:Date.now()})});
