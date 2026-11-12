@@ -80,6 +80,7 @@ main{padding-bottom:50px}
 .dc b{display:block;margin-bottom:6px}.dc small{display:block;color:var(--mute);margin-top:6px;font-size:13px}
 .dn{width:100px;height:100px;border-radius:50%;margin:0 auto;position:relative}
 .dn span{position:absolute;inset:14px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:700;font-size:18px}
+.btn.sp{background:#1db954;color:#04210e}.btn.dz{background:#a238ff}
 </style></head><body>
 <header><div class="wrap"><div class="hd"><img class="logo" src="logo.png" alt="Logo BCV 43"><div><h1>Playlist des entraînements</h1><p>Propose les musiques que tu veux entendre au BCV 43.</p></div></div><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></header>
 <main class="wrap">
@@ -100,7 +101,12 @@ main{padding-bottom:50px}
 <h2>Mes propositions en attente</h2>
 <div class="card"><ul id="pend"></ul></div>
 </section>
-<section id="v-list" hidden><h2>Musiques validées</h2><div class="card"><ul id="pub"></ul></div></section>
+<section id="v-list" hidden><h2>La playlist</h2><div class="card" id="plLinks"></div>
+<div class="card" id="plEdit" hidden><p class="q">Liens de la playlist (visibles par les joueurs)</p>
+<input id="lkS" class="in" placeholder="Lien Spotify (https://open.spotify.com/…)">
+<input id="lkD" class="in" placeholder="Lien Deezer (https://www.deezer.com/…)">
+<button id="lkSave" class="btn red">Enregistrer</button></div>
+<h2>Musiques validées</h2><div class="card"><ul id="pub"></ul></div></section>
 <section id="v-mood" hidden><h2>Mon mood</h2><div class="card">
 <p class="q">À quel entraînement viens-tu ?</p><div class="chips" id="mTr"></div>
 <p class="q">Quand voudrais-tu de la musique au club ?</p><div class="chips" id="mMu"></div>
@@ -226,12 +232,22 @@ $("#admJ").innerHTML='<div class="sub">'+TR.map(d=>'<button class="btn'+(d===dda
 '<div class="sub">'+[["tr","Viennent ce jour"],["mu","Veulent de la musique ce jour"]].map(x=>'<button class="btn'+(dmode===x[0]?"":" ghost")+'" data-act="dmode" data-v="'+x[0]+'">'+x[1]+"</button>").join("")+"</div>"+
 '<p class="hint">'+nb+" joueur(s) · "+rows.length+" titre(s)"+(none?" · "+none+" titre(s) de joueurs sans réponse au questionnaire, non classés":"")+"</p>"+
 '<div class="card"><ul>'+(rows.map(x=>row(x.s,"day",x.v)).join("")||empty("Aucune musique pour ce jour."))+"</ul></div>"}
+let links={};
+function renderLinks(){
+const s=url(links.spotify),d=url(links.deezer),b=(c,n,u)=>u?'<a class="btn '+c+'" target="_blank" rel="noopener" href="'+u+'">Écouter sur '+n+"</a>":'<span class="tag">'+n+" : pas encore disponible</span>";
+$("#plLinks").innerHTML=!s&&!d?'<p class="empty" style="padding:0">Playlist pas encore disponible.</p>':'<div class="act" style="padding:0">'+b("sp","Spotify",s)+b("dz","Deezer",d)+"</div>";
+$("#plEdit").hidden=!adm;
+if(document.activeElement!==$("#lkS"))$("#lkS").value=links.spotify||"";
+if(document.activeElement!==$("#lkD"))$("#lkD").value=links.deezer||""}
+$("#lkSave").onclick=async()=>{const s=$("#lkS").value.trim(),d=$("#lkD").value.trim();
+if((s&&!url(s))||(d&&!url(d)))return toast("Le lien doit commencer par https://");
+try{await setDoc(doc(db,"songs","_liens"),{spotify:s,deezer:d},{merge:true});toast("Liens enregistrés ✓")}catch{toast("Erreur, réessaie")}};
 function render(){
 if(!me)return;
 const all=[...songs].sort((a,b)=>(b.at||0)-(a.at||0)),pend=all.filter(s=>!s.valid),ok=all.filter(s=>s.valid);
 $("#pend").innerHTML=pend.filter(s=>(s.voters||[]).includes(who())).map(s=>row(s,"vote")).join("")||empty("Tu n'as aucune proposition en attente. Tape un titre ci-dessus pour en proposer une !");
 $("#pub").innerHTML=ok.map(s=>row(s,"pub")).join("")||empty("Aucune musique validée pour l'instant.");
-$("#pin").hidden=adm;$("#adm").hidden=!adm;
+renderLinks();$("#pin").hidden=adm;$("#adm").hidden=!adm;
 if(adm){if(!unsub)unsub=onSnapshot(collection(db,"players"),q=>{plr=q.docs.map(d=>d.data());stats();dayview()});
 $("#admNew").innerHTML=pend.map(s=>row(s,"adm")).join("")||empty("Rien à traiter.");$("#admOk").innerHTML=ok.map(s=>row(s,"adm")).join("")||empty("Aucune musique validée.");
 $("#cN").textContent=pend.length;$("#cV").textContent=ok.length;stats();mood();dayview();enrichMissing();
@@ -277,7 +293,7 @@ if(a==="done")await updateDoc(ref,{done:b.checked});
 if(a==="del"&&confirm("Supprimer ce titre ?"))await deleteDoc(ref);
 }catch{toast("Erreur, réessaie")}});
 
-onSnapshot(collection(db,"songs"),q=>{songs=q.docs.map(d=>({id:d.id,...d.data()}));render()},()=>toast("Connexion à la base impossible"));
+onSnapshot(collection(db,"songs"),q=>{const L=q.docs.find(d=>d.id==="_liens");links=L?L.data():{};songs=q.docs.filter(d=>d.id!=="_liens").map(d=>({id:d.id,...d.data()}));render()},()=>toast("Connexion à la base impossible"));
 showApp();tab("add");render();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
