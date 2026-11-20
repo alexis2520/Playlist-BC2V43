@@ -104,6 +104,7 @@ main{padding-bottom:50px}
 .shb{display:flex;gap:26px;align-items:center}.shb button{border:0;background:none;color:#fff;font-size:28px;cursor:pointer}
 .shb .shpl{width:68px;height:68px;border-radius:50%;background:#fff;color:#c4161c;font-size:26px}
 #shK{padding:0;justify-content:center}
+body{overflow-anchor:none}#v-top{overflow-x:clip}
 </style></head><body>
 <header><div class="wrap"><div class="hd"><img class="logo" src="logo.png" alt="Logo BCV 43"><div><h1>Playlist des entraînements</h1><p>Propose les musiques que tu veux entendre au BCV 43.</p></div></div><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></header>
 <main class="wrap">
@@ -135,7 +136,7 @@ main{padding-bottom:50px}
 <ul id="pub"></ul></div></section>
 <section id="v-top" hidden><h2>Top musique</h2>
 <p class="hint" style="margin:0 0 6px">Ton vote sert à faire un classement de la musique préférée du club. Glisse à droite si tu aimes, à gauche sinon, ou utilise les boutons. Tu ne vois pas les résultats.</p>
-<div id="deck"></div><div id="swb" class="swb" hidden></div><p class="hint" id="swInfo" style="text-align:center"></p></section>
+<div id="deck"></div><div id="swb" class="swb" hidden><button class="sw no" data-act="swno" aria-label="Je n’aime pas">✕</button><button class="play big" id="swp" data-act="play" aria-label="Écouter un extrait">▶</button><button class="sw yes" data-act="swyes" aria-label="J’aime">♥</button></div><p class="hint" id="swInfo" style="text-align:center"></p></section>
 <section id="v-mood" hidden><h2>Mon mood</h2><div class="card">
 <p class="q">À quel entraînement viens-tu ?</p><div class="chips" id="mTr"></div>
 <p class="q">Quand voudrais-tu de la musique au club ?</p><div class="chips" id="mMu"></div>
@@ -201,7 +202,7 @@ $("#chg").onclick=()=>{localStorage.removeItem("me");me=null;showApp()};
 async function loadMood(){try{const s=await getDoc(doc(db,P+"players",pid())),d=s.exists()?s.data():{};mk($("#mTr"),TR,d.tr||[]);mk($("#mMu"),MU,d.mu||[]);$("#idea").value=d.idea||""}catch{toast("Chargement impossible")}}
 $("#mSave").onclick=async()=>{try{await saveProfile({tr:sel($("#mTr")),mu:sel($("#mMu")),idea:$("#idea").value.trim()});toast("Enregistré ✓")}catch{toast("Erreur, réessaie")}};
 const tabs=["add","list","top","mood","admin"];
-const tab=n=>{tabs.forEach(t=>{$("#v-"+t).hidden=t!==n;const b=$("#t-"+t);if(b)b.setAttribute("aria-selected",t===n)});stop();if(n==="mood")loadMood();if(n==="top")loadTop();window.scrollTo(0,0)};
+const tab=n=>{tabs.forEach(t=>{$("#v-"+t).hidden=t!==n;const b=$("#t-"+t);if(b)b.setAttribute("aria-selected",t===n)});stop();if(n==="top"){au.onended=null;au.src=SIL;au.play().catch(()=>{})}if(n==="mood")loadMood();if(n==="top")loadTop();window.scrollTo(0,0)};
 tabs.slice(0,4).forEach(t=>$("#t-"+t).onclick=()=>tab(t));
 $("#adminLink").onclick=()=>me&&tab("admin");
 let lt=0,lto;$(".logo").onclick=()=>{lt++;clearTimeout(lto);lto=setTimeout(()=>lt=0,1500);if(lt>=5){lt=0;if(me)tab("admin")}};
@@ -306,17 +307,25 @@ swRun=d.reduce((a,x)=>Math.max(a,x.run||1),1);swSeen=new Set(d.filter(x=>(x.run|
 const swBuild=()=>{swq=shuffle(songs.filter(s=>s.valid&&!swSeen.has(s.id)));swDraw()};
 const swAgain=()=>{swRun++;swSeen=new Set();swBuild()};
 const card=(s,c)=>'<div class="sc '+c+'"><img src="'+url(big(s.cover))+'" alt="" draggable="false"><span class="meta"><b>'+esc(s.title)+"</b><span>"+esc(s.artist)+"</span><small>"+esc([s.genre&&s.genre!=="Autre"?s.genre:"",s.year].filter(Boolean).join(" · "))+'</small></span><i class="lab yes">J’AIME</i><i class="lab no">NON</i></div>';
-function swDraw(){const el=$("#deck"),s=swq[0],any=songs.some(x=>x.valid);
+let swY=null;const pvc=new Map();
+async function pre(s){if(!s||pvc.has(s.id))return;pvc.set(s.id,"");try{const p=await prevInfo(s);pvc.set(s.id,p.u||"")}catch{pvc.delete(s.id)}}
+async function swAuto(s){stop();const b=$("#swp");pb=b;b.textContent="⏳";
+try{let u=pvc.get(s.id);if(!u){const p=await prevInfo(s);u=p.u;if(u)pvc.set(s.id,u)}
+if(!u)throw 0;if(pb!==b||swq[0]!==s)return;au.src=u;au.onended=()=>{b.textContent="▶";pb=null};await au.play();b.textContent="⏸"}
+catch{if(pb===b){pb=null;b.textContent="▶"}}}
+function swDraw(){const y=swY;swY=null;swDraw0();if(y!==null){scrollTo(0,y);requestAnimationFrame(()=>scrollTo(0,y))}}
+function swDraw0(){const el=$("#deck"),s=swq[0],any=songs.some(x=>x.valid);
 $("#swb").hidden=!s;$("#swInfo").textContent=s?swq.length+" musique(s) à voter":"";
 if(!s){el.innerHTML='<div class="swend">'+(any?"<h2>Bravo, tu as tout écouté ! 🎉</h2><p>Merci ! Si tu veux, tu peux recommencer : ton nouveau vote s’ajoute au premier, le premier compte toujours.</p>":"<p>Aucune musique à voter pour l’instant.</p>")+(any?'<button class="btn red" data-act="swagain">Recommencer</button>':"")+"</div>";return}
 el.innerHTML=(swq[1]?card(swq[1],"back"):"")+card(s,"top");
-$("#swb").innerHTML='<button class="sw no" data-act="swno" aria-label="Je n’aime pas">✕</button><button class="play big" data-act="play" data-d="'+esc(s.did||"")+'" data-s="'+esc(s.artist+" "+s.title)+'" aria-label="Écouter un extrait">▶</button><button class="sw yes" data-act="swyes" aria-label="J’aime">♥</button>';
+{const p=$("#swp");p.dataset.d=s.did||"";p.dataset.s=s.artist+" "+s.title;p.dataset.u=pvc.get(s.id)||"";p.textContent="▶"}
+swAuto(s);pre(swq[1]);
 swBind(el.querySelector(".top"))}
 function swBind(c){let x0=null,dx=0;const lab=(y,n)=>{c.querySelector(".lab.yes").style.opacity=y;c.querySelector(".lab.no").style.opacity=n};
 c.onpointerdown=e=>{x0=e.clientX;dx=0;c.setPointerCapture(e.pointerId);c.style.transition="none"};
 c.onpointermove=e=>{if(x0===null)return;dx=e.clientX-x0;c.style.transform="translateX("+dx+"px) rotate("+dx/18+"deg)";lab(Math.max(0,dx/100),Math.max(0,-dx/100))};
 c.onpointerup=c.onpointercancel=()=>{if(x0===null)return;x0=null;if(Math.abs(dx)>100)return swGo(dx>0);c.style.transition="transform .2s";c.style.transform="";lab(0,0)}}
-function swGo(like){const c=$("#deck .top");if(swBusy||!c||!swq[0])return;swBusy=true;c.style.transition="transform .25s,opacity .25s";c.style.transform="translateX("+(like?500:-500)+"px) rotate("+(like?28:-28)+"deg)";c.style.opacity=0;setTimeout(async()=>{await swVote(like);swBusy=false},230)}
+function swGo(like){const c=$("#deck .top");if(swBusy||!c||!swq[0])return;swBusy=true;stop();swY=window.scrollY;c.style.transition="transform .25s,opacity .25s";c.style.transform="translateX("+(like?500:-500)+"px) rotate("+(like?28:-28)+"deg)";c.style.opacity=0;setTimeout(async()=>{await swVote(like);swBusy=false},230)}
 async function swVote(like){const s=swq.shift();stop();
 try{await setDoc(doc(db,P+"swipes",pid()+"__"+s.id+"__"+swRun),{pid:pid(),who:who(),song:s.id,like,run:swRun,t:Date.now()});swSeen.add(s.id)}catch{swq.unshift(s);toast("Vote non enregistré, réessaie")}
 swDraw()}
